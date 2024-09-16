@@ -1,7 +1,8 @@
 import pandas as pd
 
-from utils import step_create_batches, step_upload_batches, step_download_output, step_merge_output, remove_batch_files
-from chains import chain_extractor
+from LLM.chains import create_extractor_chain
+from batch.batch_steps import step_create_batches, step_upload_batches, step_download_output, step_merge_output, \
+    remove_batch_files
 
 if __name__ == "__main__":
     # Example 1: batch API processing
@@ -23,10 +24,10 @@ if __name__ == "__main__":
     # reset the batch files
     remove_batch_files()
 
-
     # Example 2: single API call
     df = pd.read_pickle(r"example_data.pkl")
     text = df['文本'][0]
 
+    chain_extractor = create_extractor_chain()
     response = chain_extractor.invoke(text)
     print(response)

@@ -219,9 +219,9 @@ def remove_files(path):
 
 def remove_batch_files(mode="IN"):
     if mode == "IN":
-        remove_files("batch/batch_input/*")  # 修改为批量删除文件
+        remove_files("batch/batch_input/*")
         remove_files("batch/batch_id.csv")
     elif mode == "IO":
-        remove_files("batch/batch_input/*")  # 修改为批量删除文件
+        remove_files("batch/batch_input/*")
         remove_files("batch/batch_id.csv")
-        remove_files("batch/batch_output/*")  # 修改为批量删除文件
+        remove_files("batch/batch_output/*")
