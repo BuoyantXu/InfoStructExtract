@@ -15,11 +15,11 @@ from settings import *
 
 
 # Zhipu AI batch API mode
-def create_batch_prompt(custom_id: str, text: str, scheme: Object = None,
+def create_batch_prompt(custom_id: str, text: str, schema: Object = None,
                         prompt_user: str = prompt_user_extractor,
                         prompt_system: str = prompt_system_extractor) -> dict:
-    prompt_system = prompt_system if not scheme else scheme.prompt_system
-    prompt_user = prompt_user if not scheme else scheme.prompt_user
+    prompt_system = prompt_system if not schema else schema.prompt_system
+    prompt_user = prompt_user if not schema else schema.prompt_user
     return {
         "custom_id": custom_id,
         "method": "POST",
@@ -41,7 +41,7 @@ def create_batch_prompt(custom_id: str, text: str, scheme: Object = None,
     }
 
 
-def create_batch_prompts(text_dict: dict) -> list:
+def create_batch_prompts(text_dict: dict, schema: Object = None) -> list:
     if isinstance(text_dict, pd.core.series.Series):
         text_dict = text_dict.to_dict()
     batch_prompts = []
@@ -51,7 +51,7 @@ def create_batch_prompts(text_dict: dict) -> list:
             custom_id = str(custom_id).zfill(12)
         elif len(custom_id) >= 65:
             raise ValueError("Custom ID should be less than 65 characters.")
-        batch_prompts.append(create_batch_prompt(custom_id, text))
+        batch_prompts.append(create_batch_prompt(custom_id, text, schema=schema))
     return batch_prompts
 
 
@@ -139,8 +139,8 @@ def format_json_batch(data, scheme: Object = None):
 
 
 # step 1: create batches
-def step_create_batches(text_dict: dict):
-    batch_prompts = create_batch_prompts(text_dict)
+def step_create_batches(text_dict: dict, schema: Object = None):
+    batch_prompts = create_batch_prompts(text_dict, schema=schema)
     write_jsonl_files(batch_prompts, batch_input_dir="batch/batch_input")
 
 
