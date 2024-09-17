@@ -96,6 +96,9 @@ if __name__ == "__main__":
     9097658	货物	 	1.0	采购融雪剂
     质疑方式：依据《政府采购法》第五十二条、《政府采购实施条例》第五十三条。供应商认为招标文件存在倾向性、歧视性条款，损害其合法权益的，可以在获取招标文件之日起7个工作日内，且在投标截止之日前，以书面形式向包头市昆都仑区环境卫生综合服务中心、包头市鑫丰项目管理有限公司提出质疑，逾期不予受理。供应商对质疑答复不满意的，或者采购人、采购代理机构未在规定期限内作出答复的，可以在质疑答复期满后15个工作日内，向同级财政部门提出投诉，逾期不予受理。
     """)
+    # print response
     print(r.content)
+
+    # format response into dict with schema
     result = format_json_response(json_str=r.content, schema=schema)
     print(result)
