@@ -30,8 +30,7 @@ class Text(Field):
 
 class Object:
     def __init__(self, fields: list[Text | Number], prompt_system: str = None, description: str = None,
-                 complete_example: str | dict = None,
-                 mode: str = "json"):
+                 complete_example: str | dict = None, mode: str = "json"):
         self.prompt_system = prompt_system
         self.description = description
         if isinstance(complete_example, dict):

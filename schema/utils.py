@@ -1,19 +1,29 @@
 import json
 import re
 
-from utils.schema import Object, Text, Number
+from schema.schema import Object, Text, Number
 
 
-def format_json(json_str: str, schema: Object) -> dict:
+def format_json_response(json_str: str, schema: Object = None) -> dict | None:
     try:
+        json_pattern = r'```json\n(.*?)\n```'
+        json_str = re.search(json_pattern, json_str, re.DOTALL).group(1)
         result = json.loads(json_str)
-    except:
-        raise ValueError(f"无法解析的 JSON 字符串: {json_str}")
 
-    formatted = {}
-    for field in schema.fields:
-        formatted[field.id] = format_by_field(field, result)
-    return formatted
+        if not schema:
+            return result
+
+        formatted = {}
+        for field in schema.fields:
+            formatted[field.id] = format_by_field(field, result)
+        return formatted
+
+    except json.JSONDecodeError as e:
+        print(f"JSON解码错误: {e}")
+        return None
+    except Exception as e:
+        print(f"JSON解码错误: {e}")
+        return None
 
 
 def format_by_field(field: Text | Number, result: dict) -> str | float | None:
@@ -27,14 +37,14 @@ def format_by_field(field: Text | Number, result: dict) -> str | float | None:
         # (2) Number
         elif isinstance(field, Number):
             if field.unit:
-                return unit_paser(result[field_id])
+                return number_unit_paser(result[field_id])
             else:
                 return result[field_id]
     else:
         return None
 
 
-def unit_paser(number: str) -> float | None:
+def number_unit_paser(number: str) -> float | None:
     if number:
         # 匹配规则
         pattern_non = r'([\d,]+\.?\d*)\s*'
@@ -52,9 +62,9 @@ def unit_paser(number: str) -> float | None:
         if match_non:
             return float(match_non.group(1))
         elif match_wan:
-            return float(match_wan.group(1)) * 10000
+            return float(match_wan.group(1)) * 10**4
         elif match_yi:
-            return float(match_yi.group(1)) * 100000000
+            return float(match_yi.group(1)) * 10**8
         else:
             raise ValueError(f"无法识别的数值格式: {number}")
     else:

@@ -1,7 +1,6 @@
 import csv
 import json
 import os
-import re
 import shutil
 from glob import glob
 
@@ -9,12 +8,18 @@ import pandas as pd
 from tqdm import tqdm
 from zhipuai import ZhipuAI
 
-from prompts import prompt_user_extractor, prompt_system_extractor
+from schema.prompts import prompt_user_extractor, prompt_system_extractor
+from schema.schema import Object
+from schema.utils import format_json_response
 from settings import *
 
 
 # Zhipu AI batch API mode
-def create_batch_prompt(custom_id: str, text: str) -> dict:
+def create_batch_prompt(custom_id: str, text: str, scheme: Object = None,
+                        prompt_user: str = prompt_user_extractor,
+                        prompt_system: str = prompt_system_extractor) -> dict:
+    prompt_system = prompt_system if not scheme else scheme.prompt_system
+    prompt_user = prompt_user if not scheme else scheme.prompt_user
     return {
         "custom_id": custom_id,
         "method": "POST",
@@ -24,11 +29,11 @@ def create_batch_prompt(custom_id: str, text: str) -> dict:
             "messages": [
                 {
                     "role": "system",
-                    "content": prompt_system_extractor
+                    "content": prompt_system
                 },
                 {
                     "role": "user",
-                    "content": prompt_user_extractor.format(text=text)
+                    "content": prompt_user.format(text=text)
                 }
             ],
             "temperature": 0
@@ -117,29 +122,20 @@ def load_uploaded_files():
     return {"uploaded_files": [], "batch_ids": {}}
 
 
-# extract info
-def extract_json_from_string(data, attrs: list = None):
+# format json batch response with custom_id
+def format_json_batch(data, scheme: Object = None):
     content = data['response']['body']['choices'][0]['message']['content']
     custom_id = data['custom_id']
-    # 使用正则表达式查找 JSON 数据
-    json_pattern = r'```json\n(.*?)\n```'
-    match = re.search(json_pattern, content, re.DOTALL)
 
-    if match:
-        json_str = match.group(1)
-        # 将 JSON 字符串转换为字典
-        try:
-            result = json.loads(json_str)
-            result["custom_id"] = custom_id
-            if attrs:
-                result = {x: result.get(x, '') for x in attrs}
-            return result
-        except json.JSONDecodeError as e:
-            print(f"JSON解码错误: {e}")
-            return None
-    else:
-        print("未找到 JSON 数据")
+    try:
+        result = format_json_response(content, scheme)
+    except json.JSONDecodeError as e:
+        print(f"JSON解码错误: {e}")
         return None
+
+    if isinstance(result, dict):
+        result["custom_id"] = custom_id
+    return result
 
 
 # step 1: create batches
@@ -191,7 +187,7 @@ def step_merge_output():
         # read jsonl file
         with open(path, 'r', encoding='utf-8') as f:
             data = [json.loads(line) for line in f]
-        messages_chunk = [extract_json_from_string(r) for r in data]
+        messages_chunk = [format_json_batch(r) for r in data]
         messages_chunk = [message for message in messages_chunk if message]
         messages.extend(messages_chunk)
 
@@ -204,7 +200,7 @@ def step_merge_output():
 # remove batch files
 def remove_files(path):
     if os.path.exists(path):
-        files = glob(path)
+        files = glob(path + "*")
         for file in files:
             try:
                 if os.path.isfile(file) or os.path.islink(file):
@@ -219,9 +215,9 @@ def remove_files(path):
 
 def remove_batch_files(mode="IN"):
     if mode == "IN":
-        remove_files("batch/batch_input/*")
-        remove_files("batch/batch_id.csv")
+        remove_files("batch/batch_input/")
+        remove_files(path="batch/batch_id.csv")
     elif mode == "IO":
-        remove_files("batch/batch_input/*")
-        remove_files("batch/batch_id.csv")
-        remove_files("batch/batch_output/*")
+        remove_files(path="batch/batch_input/")
+        remove_files(path="batch/batch_id.csv")
+        remove_files(path="batch/batch_output/")
