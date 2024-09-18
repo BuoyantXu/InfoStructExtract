@@ -4,7 +4,7 @@ from langchain.prompts import (
     HumanMessagePromptTemplate,
 )
 
-from LLM.models import llm
+from LLM.models import llm_batch
 from schema.prompts import prompt_system_extractor, prompt_user_extractor
 from schema.schema import Object
 
@@ -19,6 +19,6 @@ def create_extractor_chain(scheme: Object = None, prompt_user: str = prompt_user
             HumanMessagePromptTemplate.from_template(prompt_user)
         ]
     )
-    chain_extractor = prompt_user_extractor | llm
+    chain_extractor = prompt_user_extractor | llm_batch
 
     return chain_extractor

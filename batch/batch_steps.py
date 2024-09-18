@@ -11,13 +11,14 @@ from zhipuai import ZhipuAI
 from schema.prompts import prompt_user_extractor, prompt_system_extractor
 from schema.schema import Object
 from schema.utils import format_json_response
-from settings import *
+from settings import batch_key, batch_model
 
 
 # Zhipu AI batch API mode
 def create_batch_prompt(custom_id: str, text: str, schema: Object = None,
                         prompt_user: str = prompt_user_extractor,
-                        prompt_system: str = prompt_system_extractor) -> dict:
+                        prompt_system: str = prompt_system_extractor,
+                        model: str = batch_model) -> dict:
     prompt_system = prompt_system if not schema else schema.prompt_system
     prompt_user = prompt_user if not schema else schema.prompt_user
     return {
@@ -25,7 +26,7 @@ def create_batch_prompt(custom_id: str, text: str, schema: Object = None,
         "method": "POST",
         "url": "/v4/chat/completions",
         "body": {
-            "model": "glm-4-flash",
+            "model": model,
             "messages": [
                 {
                     "role": "system",
@@ -41,7 +42,7 @@ def create_batch_prompt(custom_id: str, text: str, schema: Object = None,
     }
 
 
-def create_batch_prompts(text_dict: dict, schema: Object = None) -> list:
+def create_batch_prompts(text_dict: dict, schema: Object = None, model: str = batch_model) -> list:
     if isinstance(text_dict, pd.core.series.Series):
         text_dict = text_dict.to_dict()
     batch_prompts = []
@@ -51,7 +52,7 @@ def create_batch_prompts(text_dict: dict, schema: Object = None) -> list:
             custom_id = str(custom_id).zfill(12)
         elif len(custom_id) >= 65:
             raise ValueError("Custom ID should be less than 65 characters.")
-        batch_prompts.append(create_batch_prompt(custom_id, text, schema=schema))
+        batch_prompts.append(create_batch_prompt(custom_id, text, schema=schema, model=model))
     return batch_prompts
 
 
@@ -139,8 +140,8 @@ def format_json_batch(data, scheme: Object = None):
 
 
 # step 1: create batches
-def step_create_batches(text_dict: dict, schema: Object = None):
-    batch_prompts = create_batch_prompts(text_dict, schema=schema)
+def step_create_batches(text_dict: dict, schema: Object = None, model: str = batch_model):
+    batch_prompts = create_batch_prompts(text_dict, schema=schema, model=model)
     write_jsonl_files(batch_prompts, batch_input_dir="batch/batch_input")
 
 
@@ -221,3 +222,8 @@ def remove_batch_files(mode="IN"):
         remove_files(path="batch/batch_input/")
         remove_files(path="batch/batch_id.csv")
         remove_files(path="batch/batch_output/")
+    elif mode == "ALL":
+        remove_files(path="batch/batch_input/")
+        remove_files(path="batch/batch_id.csv")
+        remove_files(path="batch/batch_output/")
+        remove_files(path="batch/processed/")
