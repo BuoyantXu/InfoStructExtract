@@ -2,6 +2,14 @@ import json
 
 
 class Field:
+    """
+    Field class to define the fields in the schema.
+
+    :param id: str, the id of the field
+    :param description: str, the description of the field
+    :param examples: list, the examples of the field
+    """
+
     def __init__(self, id: str, description: str = None, examples: list = None):
         self.id = id
         self.description = description
@@ -12,11 +20,25 @@ class Field:
 
 
 class Date(Field):
-    def __init__(self, id: str, description: str = None, examples: list = None):
+    """
+    Date field class to define the date field in the schema.
+
+    :param date_format: str, the format of the date
+    """
+
+    def __init__(self, id: str, description: str = None, examples: list = None, date_format: str = "YYYY-MM-DD"):
         super().__init__(id, description, examples)
+
+        self.date_format = date_format
 
 
 class Number(Field):
+    """
+    Number field class to define the number field in the schema.
+
+    :param unit: bool, whether the number has a unit
+    """
+
     def __init__(self, id: str, description: str = None, examples: list = None, unit: bool = False):
         super().__init__(id, description, examples)
 
@@ -24,11 +46,25 @@ class Number(Field):
 
 
 class Text(Field):
+    """
+    Text field class to define the text field in the schema.
+    """
+
     def __init__(self, id: str, description: str = None, examples: list = None):
         super().__init__(id, description, examples)
 
 
 class Object:
+    """
+    Object class to define the schema object. Create system and user prompts based on the schema.
+
+    :param fields: list, the fields in the schema
+    :param prompt_system: str, the system prompt
+    :param description: str, the description of the schema
+    :param complete_example: str | dict, the complete example of the schema
+    :param mode: str, the mode of the schema which can be "json" or "yaml"
+    """
+
     def __init__(self, fields: list[Text | Number], prompt_system: str = None, description: str = None,
                  complete_example: str | dict = None, mode: str = "json"):
         self.prompt_system = prompt_system

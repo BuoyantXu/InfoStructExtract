@@ -147,7 +147,8 @@ def step_create_batches(text_dict: dict, schema: Object = None, prefix: str = ""
 
 
 # create batch files and pandas DataFrame chunks pickle files
-def step_create_batches_chunks(schema: Object, paths_chunk_pkl_files: list, chunk_size: int = 100, text_column: str = ""):
+def step_create_batches_chunks(schema: Object, paths_chunk_pkl_files: list, chunk_size: int = 100,
+                               text_column: str = ""):
     """
     将大量从原始文本数据中分割出来的chunk数据.pkl文件，按照顺序生成处理后的chunk数据.pkl文件，用prefix列标记文件，标签标记每一行。
     output.jsonl文件中的custom_id相对应，用于后续与结果的匹配 (custom_id = prefix + custom_id)
@@ -219,18 +220,21 @@ def step_download_output():
     paths_download = glob(r"batch/batch_output/*.jsonl")
     file_names = [os.path.basename(path).split(".")[0] for path in paths_download]
     num_files = len(batch_ids)
-    n_not_downloaded = 0
+
+    n_downloaded = 0
     for batch_id, key in batch_ids:
+        if batch_id in file_names:
+            num_files -= 1
+            continue
         client = ZhipuAI(api_key=key)
         batch_job = client.batches.retrieve(batch_id)
-        if batch_job.output_file_id and (batch_id not in file_names):
+        if batch_job.output_file_id:
             content = client.files.content(batch_job.output_file_id)
             # 使用write_to_file方法把返回结果写入文件
             content.write_to_file(f"batch/batch_output/{batch_id}.jsonl")
             print(f"Downloaded file: {batch_id}.jsonl")
-        else:
-            n_not_downloaded += 1
-    print(f"Downloaded {num_files - n_not_downloaded} files. {n_not_downloaded} files not finished.")
+            n_downloaded += 1
+    print(f"Downloaded {n_downloaded} files. {num_files - n_downloaded} files not finished.")
 
 
 # step 4: merge output
