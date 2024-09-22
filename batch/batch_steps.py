@@ -125,15 +125,11 @@ def load_uploaded_files():
 
 
 # format json batch response with custom_id
-def format_json_batch(data, scheme: Object = None):
+def format_json_batch(data, schema: Object = None):
     content = data['response']['body']['choices'][0]['message']['content']
     custom_id = data['custom_id']
 
-    try:
-        result = format_json_response(content, scheme)
-    except json.JSONDecodeError as e:
-        print(f"JSON解码错误: {e}")
-        return None
+    result = format_json_response(content, schema)
 
     if isinstance(result, dict):
         result["custom_id"] = custom_id
@@ -232,20 +228,20 @@ def step_download_output():
             content = client.files.content(batch_job.output_file_id)
             # 使用write_to_file方法把返回结果写入文件
             content.write_to_file(f"batch/batch_output/{batch_id}.jsonl")
-            print(f"Downloaded file: {batch_id}.jsonl")
+            print(f"Downloaded {n_downloaded + 1} files. Current file: {batch_id}.jsonl")
             n_downloaded += 1
     print(f"Downloaded {n_downloaded} files. {num_files - n_downloaded} files not finished.")
 
 
 # step 4: merge output
-def step_merge_output():
+def step_merge_output(schema: Object = None):
     paths_output = glob(r"batch/batch_output/*.jsonl")
     messages = []
     for path in tqdm(paths_output):
         # read jsonl file
         with open(path, 'r', encoding='utf-8') as f:
             data = [json.loads(line) for line in f]
-        messages_chunk = [format_json_batch(r) for r in data]
+        messages_chunk = [format_json_batch(r, schema=schema) for r in data]
         messages_chunk = [message for message in messages_chunk if message]
         messages.extend(messages_chunk)
 

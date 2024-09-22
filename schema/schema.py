@@ -8,12 +8,14 @@ class Field:
     :param id: str, the id of the field
     :param description: str, the description of the field
     :param examples: list, the examples of the field
+    :param keep: bool, if True it will keep raw string as {colname}_raw
     """
 
-    def __init__(self, id: str, description: str = None, examples: list = None):
+    def __init__(self, id: str, description: str = None, examples: list = None, keep: bool = False):
         self.id = id
         self.description = description
         self.examples = examples
+        self.keep = keep
 
     def __str__(self):
         return f"{self.id}: {self.description}"
@@ -26,8 +28,8 @@ class Date(Field):
     :param date_format: str, the format of the date
     """
 
-    def __init__(self, id: str, description: str = None, examples: list = None, date_format: str = "YYYY-MM-DD"):
-        super().__init__(id, description, examples)
+    def __init__(self, id: str, description: str = None, examples: list = None, keep: bool = False, date_format: str = "YYYY-MM-DD"):
+        super().__init__(id, description, examples, keep)
 
         self.date_format = date_format
 
@@ -39,8 +41,8 @@ class Number(Field):
     :param unit: bool, whether the number has a unit
     """
 
-    def __init__(self, id: str, description: str = None, examples: list = None, unit: bool = False):
-        super().__init__(id, description, examples)
+    def __init__(self, id: str, description: str = None, examples: list = None, keep: bool = False, unit: bool = False):
+        super().__init__(id, description, examples, keep)
 
         self.unit = unit
 
@@ -50,8 +52,8 @@ class Text(Field):
     Text field class to define the text field in the schema.
     """
 
-    def __init__(self, id: str, description: str = None, examples: list = None):
-        super().__init__(id, description, examples)
+    def __init__(self, id: str, description: str = None, examples: list = None, keep: bool = False):
+        super().__init__(id, description, examples, keep)
 
 
 class Object:
