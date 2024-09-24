@@ -67,30 +67,24 @@ def number_unit_paser(number: str) -> float | None:
     if number:
         if re.search(r'\d', number):
             # 匹配规则
-            pattern_non = r'([\d,]+\.?\d*)\s*'
-            pattern_wan = r'([\d,]+\.?\d*)\s*万'
-            pattern_yi = r'([\d,]+\.?\d*)\s*亿'
-
-            # 去除千位分隔符
-            amount_str = number.replace(',', '')
+            pattern_number = r'([\d,]+\.?\d*)\s*'
 
             # 匹配并转换
-            match_non = re.search(pattern_non, amount_str)
-            match_wan = re.search(pattern_wan, amount_str)
-            match_yi = re.search(pattern_yi, amount_str)
+            match_number = re.search(pattern_number, number)
 
-            if match_non:
-                number = float(match_non.group(1))
-                if number > 10000:
-                    number = number / 10000
-            elif match_wan:
-                number = float(match_wan.group(1))
-            elif match_yi:
-                number = float(match_yi.group(1)) * (10 ** 8)
+            if match_number:
+                number_num = float(match_number.group(1))
+                if "万" in number:
+                    return number_num
+                elif "亿" in number:
+                    return number_num * 10 ** 4
+                else:
+                    if number_num > 10000:
+                        number_num = number_num / 10000
+                    return number_num
             else:
-                raise ValueError(f"无法识别的数值格式: {number}")
-
-            return number
+                print(f"无法识别的数值格式: {number}")
+                return None
         else:
             try:
                 number = "".join([char for char in number if
